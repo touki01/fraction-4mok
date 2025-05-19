@@ -19,15 +19,13 @@
 </head>
 <body>
   <h1>실시간 분수 통분 오목</h1>
-  <p id="status">접속자 목록을 불러오는 중...</p>
-  <div id="users"></div>
+  <p id="status">게임을 준비 중입니다...</p>
   <div id="board"></div>
 
   <script>
-    const socket = io("https://fraction-4mok.onrender.com");
+    const socket = io("https://fraction-4mok-1.onrender.com");
     const boardEl = document.getElementById("board");
     const status = document.getElementById("status");
-    const usersEl = document.getElementById("users");
     const SIZE = 7;
     let player = 0;
     let myTurn = false;
@@ -93,11 +91,10 @@
       player = num;
     });
 
-    socket.on("boardInit", ({ board, data, currentPlayer, count, users }) => {
+    socket.on("boardInit", ({ board, data, currentPlayer }) => {
       drawBoard(board, data);
       myTurn = currentPlayer === player;
       status.textContent = myTurn ? "내 차례입니다." : "상대 차례입니다.";
-      usersEl.textContent = `현재 접속자: ${users.join(", ")}`;
     });
 
     socket.on("moveMade", ({ row, col, player }) => {
