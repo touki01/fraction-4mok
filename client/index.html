@@ -19,29 +19,18 @@
 </head>
 <body>
   <h1>실시간 분수 통분 오목</h1>
-  <div>
-    <input id="roomCode" placeholder="방 코드 입력" />
-    <button onclick="joinRoom()">입장</button>
-  </div>
-  <p id="status">방 코드로 입장해 주세요.</p>
+  <p id="status">접속자 목록을 불러오는 중...</p>
+  <div id="users"></div>
   <div id="board"></div>
 
   <script>
     const socket = io("https://fraction-4mok.onrender.com");
     const boardEl = document.getElementById("board");
     const status = document.getElementById("status");
-    const roomInput = document.getElementById("roomCode");
+    const usersEl = document.getElementById("users");
     const SIZE = 7;
     let player = 0;
     let myTurn = false;
-    let currentBoard = [];
-    let fractionData = [];
-
-    function joinRoom() {
-      const code = roomInput.value.trim();
-      if (!code) return alert("방 코드를 입력하세요.");
-      socket.emit("joinRoom", code);
-    }
 
     function createFractionElement(f) {
       const wrap = document.createElement("div");
@@ -65,9 +54,6 @@
 
     function drawBoard(board, data) {
       boardEl.innerHTML = "";
-      currentBoard = board;
-      fractionData = data;
-
       board.forEach((row, r) => {
         row.forEach((cell, c) => {
           const cellDiv = document.createElement("div");
@@ -107,10 +93,11 @@
       player = num;
     });
 
-    socket.on("boardInit", ({ board, data, currentPlayer, count }) => {
+    socket.on("boardInit", ({ board, data, currentPlayer, count, users }) => {
       drawBoard(board, data);
       myTurn = currentPlayer === player;
-      status.textContent = `접속자 수: ${count}명 / ${myTurn ? '내 차례' : '상대 차례'}`;
+      status.textContent = myTurn ? "내 차례입니다." : "상대 차례입니다.";
+      usersEl.textContent = `현재 접속자: ${users.join(", ")}`;
     });
 
     socket.on("moveMade", ({ row, col, player }) => {
@@ -121,7 +108,7 @@
 
     socket.on("turnUpdate", (cp) => {
       myTurn = cp === player;
-      status.textContent = myTurn ? "당신의 차례입니다." : "상대 차례입니다.";
+      status.textContent = myTurn ? "내 차례입니다." : "상대 차례입니다.";
     });
 
     socket.on("gameOver", ({ winner }) => {
@@ -140,3 +127,4 @@
   </script>
 </body>
 </html>
+
