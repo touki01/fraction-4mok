@@ -24,7 +24,7 @@
     }
     #board {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      grid-template-columns: repeat(7, 1fr);
       gap: 10px;
       margin-top: 20px;
       width: 100%;
@@ -113,10 +113,11 @@
   <script>
     const board = document.getElementById("board");
     const turnInfo = document.getElementById("turnInfo");
-    const SIZE = 10;
+    const SIZE = 7;
     let currentPlayer = 1;
     let gameOver = false;
     let state = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+let usedFractions = new Set();
 
     function getGCD(a, b) {
       return b === 0 ? a : getGCD(b, a % b);
@@ -133,18 +134,20 @@
     }
 
     function getTwoDistinctFractions() {
-      let f1, f2;
-      let parsed1, parsed2;
-      do {
-        f1 = getRandomFraction();
-        f2 = getRandomFraction();
-        parsed1 = toImproper(f1);
-        parsed2 = toImproper(f2);
-      } while (
-        parsed1.d === parsed2.d ||
-        parsed1.n * parsed2.d === parsed2.n * parsed1.d
-      );
-      return [f1, f2];
+  let f1, f2;
+  let parsed1, parsed2;
+  let tries = 0;
+  do {
+    f1 = getRandomFraction();
+    f2 = getRandomFraction();
+    parsed1 = toImproper(f1);
+    parsed2 = toImproper(f2);
+    tries++;
+  } while (
+    (parsed1.d === parsed2.d || parsed1.n * parsed2.d === parsed2.n * parsed1.d || usedFractions.has(f1 + ',' + f2)) && tries < 100
+  );
+  usedFractions.add(f1 + ',' + f2);
+  return [f1, f2];
     }
 
     function toImproper(fraction) {
@@ -230,6 +233,20 @@
 
       const checkBtn = document.createElement("button");
       checkBtn.textContent = "제출";
+
+      const hintBtn = document.createElement("button");
+      hintBtn.textContent = "힌트 보기";
+      hintBtn.onclick = () => {
+        const answer1 = toImproper(f1);
+        const answer2 = toImproper(f2);
+        const lcm = answer1.d * answer2.d / getGCD(answer1.d, answer2.d);
+        f1Num.value = answer1.n * (lcm / answer1.d);
+        f1Den.value = lcm;
+        f2Num.value = answer2.n * (lcm / answer2.d);
+        f2Den.value = lcm;
+      };
+      
+
       checkBtn.onclick = () => {
         if (cell.classList.contains("correct") || gameOver) return;
         const n1 = Number(f1Num.value);
@@ -264,6 +281,7 @@
 
       cell.appendChild(fracDiv);
       cell.appendChild(inputWrap);
+      cell.appendChild(hintBtn);
       cell.appendChild(checkBtn);
       board.appendChild(cell);
     }
@@ -273,6 +291,6 @@
         createCell(r, c);
       }
     }
-  </script>
+</script>
 </body>
 </html>
